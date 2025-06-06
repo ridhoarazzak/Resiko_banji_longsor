@@ -1,62 +1,77 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resiko Banjir dan Longsor</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-        header { background-color: #0078A0; color: white; padding: 10px 20px; text-align: center; }
-        #map { height: 500px; }
-        footer { background-color: #f1f1f1; padding: 10px; text-align: center; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Resiko Banjir di Solok Selatan</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    crossorigin=""
+  />
+  <style>
+    #map {
+      height: 600px;
+      width: 100%;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Resiko Banjir dan Longsor di Solok Selatan</h1>
-    </header>
+  <h1>Resiko Banjir di Solok Selatan</h1>
+  <div id="map"></div>
 
-    <div id="map"></div>
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" crossorigin=""></script>
+  <script>
+    const map = L.map('map').setView([-0.85, 100.95], 10);
 
-    <footer>
-        <p>Data GeoJSON: <a href="https://github.com/ridhoarazzak/Resiko_banji_longsor">Resiko_banji_longsor</a></p>
-    </footer>
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '© OpenStreetMap contributors',
+    }).addTo(map);
 
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-ajax@2.0.0/dist/leaflet.ajax.min.js"></script>
-    <script>
-        var map = L.map('map').setView([-1.2667, 101.9167], 10); // Koordinat Solok Selatan
+    // Daftar file GeoJSON dan warna stylingnya
+    const geojsonFiles = [
+      {
+        url: 'https://raw.githubusercontent.com/ridhoarazzak/Resiko_banji_longsor/main/low_risk_flood_Areas_SolokSelatan.geojson',
+        color: 'yellow',
+        label: 'Risiko Rendah'
+      },
+      {
+        url: 'https://raw.githubusercontent.com/ridhoarazzak/Resiko_banji_longsor/main/medium_risk_flood_Areas_SolokSelatan.geojson',
+        color: 'orange',
+        label: 'Risiko Sedang'
+      },
+      {
+        url: 'https://raw.githubusercontent.com/ridhoarazzak/Resiko_banji_longsor/main/high_risk_flood_Areas_SolokSelatan.geojson',
+        color: 'red',
+        label: 'Risiko Tinggi'
+      }
+    ];
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-
-        // Tambahkan layer GeoJSON
-        var lowRiskLayer = new L.GeoJSON.AJAX("assets/data/Low_risk_flood_Areas_SolokSelatan.geojson", {
-            onEachFeature: function (feature, layer) {
-                layer.bindPopup("Area Risiko Rendah");
+    geojsonFiles.forEach(({url, color, label}) => {
+      fetch(url)
+        .then(response => {
+          if (!response.ok) throw new Error('Network response was not ok');
+          return response.json();
+        })
+        .then(data => {
+          L.geoJSON(data, {
+            style: {
+              color: color,
+              fillOpacity: 0.5,
+              weight: 1
+            },
+            onEachFeature: function(feature, layer) {
+              let name = feature.properties?.name || label;
+              layer.bindPopup(`<strong>${name}</strong><br>Level Risiko: ${label}`);
             }
-        }).addTo(map);
-
-        var mediumRiskLayer = new L.GeoJSON.AJAX("assets/data/Medium_risk_flood_Areas_SolokSelatan.geojson", {
-            onEachFeature: function (feature, layer) {
-                layer.bindPopup("Area Risiko Sedang");
-            }
-        }).addTo(map);
-
-        var highRiskLayer = new L.GeoJSON.AJAX("assets/data/high_risk_flood_Areas_SolokSelatan.geojson", {
-            onEachFeature: function (feature, layer) {
-                layer.bindPopup("Area Risiko Tinggi");
-            }
-        }).addTo(map);
-
-        // Tambahkan kontrol layer
-        L.control.layers({
-            "Risiko Rendah": lowRiskLayer,
-            "Risiko Sedang": mediumRiskLayer,
-            "Risiko Tinggi": highRiskLayer
-        }).addTo(map);
-    </script>
+          }).addTo(map);
+        })
+        .catch(err => {
+          console.error(`Gagal load GeoJSON ${label}:`, err);
+        });
+    });
+  </script>
 </body>
 </html>
+
