@@ -1,77 +1,59 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Resiko Banjir di Solok Selatan</title>
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
-    crossorigin=""
-  />
-  <style>
-    #map {
-      height: 600px;
-      width: 100%;
-    }
-  </style>
+    <title>Peta Risiko Banjir - Solok Selatan</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map { height: 90vh; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        h2 { padding: 10px; text-align: center; background-color: #f4f4f4; margin: 0; }
+    </style>
 </head>
 <body>
-  <h1>Resiko Banjir di Solok Selatan</h1>
-  <div id="map"></div>
+    <h2>Peta Risiko Banjir - Kabupaten Solok Selatan</h2>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([-1.5631, 101.3431], 11); // Koordinat Padang Aro, Solok Selatan
 
-  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" crossorigin=""></script>
-  <script>
-    const map = L.map('map').setView([-0.85, 100.95], 10);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18,
-      attribution: '© OpenStreetMap contributors',
-    }).addTo(map);
-
-    // Daftar file GeoJSON dan warna stylingnya
-    const geojsonFiles = [
-      {
-        url: 'https://raw.githubusercontent.com/ridhoarazzak/Resiko_banji_longsor/main/low_risk_flood_Areas_SolokSelatan.geojson',
-        color: 'yellow',
-        label: 'Risiko Rendah'
-      },
-      {
-        url: 'https://raw.githubusercontent.com/ridhoarazzak/Resiko_banji_longsor/main/medium_risk_flood_Areas_SolokSelatan.geojson',
-        color: 'orange',
-        label: 'Risiko Sedang'
-      },
-      {
-        url: 'https://raw.githubusercontent.com/ridhoarazzak/Resiko_banji_longsor/main/high_risk_flood_Areas_SolokSelatan.geojson',
-        color: 'red',
-        label: 'Risiko Tinggi'
-      }
-    ];
-
-    geojsonFiles.forEach(({url, color, label}) => {
-      fetch(url)
-        .then(response => {
-          if (!response.ok) throw new Error('Network response was not ok');
-          return response.json();
-        })
-        .then(data => {
-          L.geoJSON(data, {
-            style: {
-              color: color,
-              fillOpacity: 0.5,
-              weight: 1
-            },
-            onEachFeature: function(feature, layer) {
-              let name = feature.properties?.name || label;
-              layer.bindPopup(`<strong>${name}</strong><br>Level Risiko: ${label}`);
-            }
-          }).addTo(map);
-        })
-        .catch(err => {
-          console.error(`Gagal load GeoJSON ${label}:`, err);
+        var lowRiskLayer = L.geoJSON(null, {
+            style: { color: "green", weight: 1.5, fillOpacity: 0.4 }
         });
-    });
-  </script>
+        var mediumRiskLayer = L.geoJSON(null, {
+            style: { color: "orange", weight: 1.5, fillOpacity: 0.4 }
+        });
+        var highRiskLayer = L.geoJSON(null, {
+            style: { color: "red", weight: 1.5, fillOpacity: 0.4 }
+        });
+
+        var overlays = {
+            "Risiko Rendah": lowRiskLayer,
+            "Risiko Sedang": mediumRiskLayer,
+            "Risiko Tinggi": highRiskLayer
+        };
+
+        L.control.layers(null, overlays).addTo(map);
+
+        function loadGeoJSON(layer, url) {
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    layer.addData(data);
+                    map.fitBounds(layer.getBounds());
+                })
+                .catch(err => console.error("Gagal memuat " + url, err));
+        }
+
+        loadGeoJSON(lowRiskLayer, 'Low_risk_flood_Areas_SolokSelatan.geojson');
+        loadGeoJSON(mediumRiskLayer, 'Medium_risk_flood_Areas_SolokSelatan.geojson');
+        loadGeoJSON(highRiskLayer, 'High_risk_flood_Areas_SolokSelatan.geojson');
+    </script>
 </body>
 </html>
 
