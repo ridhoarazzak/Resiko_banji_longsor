@@ -56,14 +56,11 @@
 
         // API Key OpenWeather
         const apiKey = '3a3e47a47e051b4cd78e04d4a50f0c8c'; // Ganti dengan API Key kamu
-        const lat = -1.5631;  // Latitude Solok Selatan
-        const lon = 101.3431; // Longitude Solok Selatan
-
-        // URL untuk mendapatkan data cuaca dari OpenWeather
-        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
 
         // Fungsi untuk mengambil data curah hujan dari OpenWeather API
-        function fetchRainData() {
+        function fetchRainData(lat, lon) {
+            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
+            
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
@@ -72,16 +69,21 @@
                     
                     // Menambahkan marker di peta dengan informasi curah hujan
                     const marker = L.marker([lat, lon]).addTo(map);
-                    marker.bindPopup(`<b>Solok Selatan</b><br>${rainStatus}`).openPopup();
+                    marker.bindPopup(`<b>Lokasi Terpilih</b><br>${rainStatus}`).openPopup();
                 })
                 .catch(error => {
                     console.error('Error fetching data: ', error);
                 });
         }
 
-        // Panggil fungsi untuk mengambil data curah hujan
-        fetchRainData();
+        // Fungsi untuk menangani klik pada peta
+        map.on('click', function(e) {
+            const lat = e.latlng.lat;
+            const lon = e.latlng.lng;
+            
+            // Panggil fungsi untuk mengambil data curah hujan berdasarkan lokasi yang diklik
+            fetchRainData(lat, lon);
+        });
     </script>
 </body>
 </html>
-
