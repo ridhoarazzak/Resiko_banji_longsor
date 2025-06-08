@@ -15,9 +15,9 @@
     <h2>Peta Risiko Banjir - Kabupaten Solok Selatan</h2>
     <div id="map"></div>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/pako/dist/pako.min.js"></script> <!-- Pako untuk dekompresi -->
+    <script src="https://unpkg.com/pako/dist/pako.min.js"></script> <!-- untuk decompress gzip -->
     <script>
-        var map = L.map('map').setView([-1.5631, 101.3431], 11); // Koordinat Padang Aro, Solok Selatan
+        var map = L.map('map').setView([-1.5631, 101.3431], 11);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
@@ -32,7 +32,6 @@
         var highRiskLayer = L.geoJSON(null, {
             style: { color: "red", weight: 1.5, fillOpacity: 0.4 }
         });
-
         var longsorLayer = L.geoJSON(null, {
             style: { color: "blue", weight: 2, fillOpacity: 0.4 }
         });
@@ -41,9 +40,8 @@
             "Risiko Rendah": lowRiskLayer,
             "Risiko Sedang": mediumRiskLayer,
             "Risiko Tinggi": highRiskLayer,
-            "Longsor": longsorLayer // Menambahkan layer Budaya
+            "Longsor": longsorLayer
         };
-
         L.control.layers(null, overlays).addTo(map);
 
         function loadGeoJSON(layer, url) {
@@ -58,58 +56,44 @@
 
         function loadGeoJSONFromGz(layer, url) {
             fetch(url)
-                .then(res => res.arrayBuffer()) // Mengambil sebagai buffer untuk dekompresi
+                .then(res => res.arrayBuffer())
                 .then(buffer => {
-                    // Decompress file .gz
-                    var decompressed = pako.ungzip(new Uint8Array(buffer), { to: 'string' });
-
-                    // Parse GeoJSON dari string yang didecompress
-                    var geojson = JSON.parse(decompressed);
-
-                    // Menambahkan data ke layer
+                    const compressedData = new Uint8Array(buffer);
+                    const jsonString = pako.ungzip(compressedData, { to: 'string' });
+                    const geojson = JSON.parse(jsonString);
                     layer.addData(geojson);
                     map.fitBounds(layer.getBounds());
                 })
-                .catch(err => console.error("Gagal memuat file gz " + url, err));
+                .catch(err => console.error("Gagal memuat file gzip dari " + url, err));
         }
 
-        // Memuat data dari file GeoJSON biasa
+        // Muat peta risiko
         loadGeoJSON(lowRiskLayer, 'Low_risk_flood_Areas_SolokSelatan.geojson');
         loadGeoJSON(mediumRiskLayer, 'Medium_risk_flood_Areas_SolokSelatan.geojson');
         loadGeoJSON(highRiskLayer, 'high_risk_flood_Areas_SolokSelatan.geojson');
 
-        // Memuat data budaya dari file GeoJSON.gz
+        // Muat layer longsor dari file .gz di GitHub
         loadGeoJSONFromGz(longsorLayer, 'https://raw.githubusercontent.com/ridhoarazzak/Resiko_banji_longsor/main/data/data_simplified.geojson.gz');
 
-        // API Key OpenWeather
-        const apiKey = '3a3e47a47e051b4cd78e04d4a50f0c8c'; // Ganti dengan API Key kamu
+        // API Cuaca
+        const apiKey = '3a3e47a47e051b4cd78e04d4a50f0c8c';
 
-        // Fungsi untuk mengambil data curah hujan dari OpenWeather API
         function fetchRainData(lat, lon) {
             const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
-            
+
             fetch(url)
-                .then(response => response.json())
+                .then(res => res.json())
                 .then(data => {
-                    const rain = data.rain ? data.rain['1h'] : 0; // Curah hujan dalam 1 jam (mm)
+                    const rain = data.rain ? data.rain['1h'] : 0;
                     const rainStatus = rain > 0 ? `Curah Hujan: ${rain} mm` : 'Tidak Ada Hujan';
-                    
-                    // Menambahkan marker di peta dengan informasi curah hujan
                     const marker = L.marker([lat, lon]).addTo(map);
                     marker.bindPopup(`<b>Lokasi Terpilih</b><br>${rainStatus}`).openPopup();
                 })
-                .catch(error => {
-                    console.error('Error fetching data: ', error);
-                });
+                .catch(err => console.error('Gagal mengambil data cuaca:', err));
         }
 
-        // Fungsi untuk menangani klik pada peta
         map.on('click', function(e) {
-            const lat = e.latlng.lat;
-            const lon = e.latlng.lng;
-            
-            // Panggil fungsi untuk mengambil data curah hujan berdasarkan lokasi yang diklik
-            fetchRainData(lat, lon);
+            fetchRainData(e.latlng.lat, e.latlng.lng);
         });
     </script>
 </body>
