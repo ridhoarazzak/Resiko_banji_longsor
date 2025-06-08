@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Peta Risiko Banjir - Solok Selatan</title>
+    <title>Peta Risiko Banjir & Longsor- Solok Selatan</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
@@ -12,7 +12,7 @@
     </style>
 </head>
 <body>
-    <h2>Peta Risiko Banjir - Kabupaten Solok Selatan</h2>
+    <h2>Peta Risiko Banjir & Longsor - Kabupaten Solok Selatan</h2>
     <div id="map"></div>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://unpkg.com/pako/dist/pako.min.js"></script> <!-- untuk decompress gzip -->
@@ -54,26 +54,13 @@
                 .catch(err => console.error("Gagal memuat " + url, err));
         }
 
-        function loadGeoJSONFromGz(layer, url) {
-            fetch(url)
-                .then(res => res.arrayBuffer())
-                .then(buffer => {
-                    const compressedData = new Uint8Array(buffer);
-                    const jsonString = pako.ungzip(compressedData, { to: 'string' });
-                    const geojson = JSON.parse(jsonString);
-                    layer.addData(geojson);
-                    map.fitBounds(layer.getBounds());
-                })
-                .catch(err => console.error("Gagal memuat file gzip dari " + url, err));
-        }
-
         // Muat peta risiko
         loadGeoJSON(lowRiskLayer, 'Low_risk_flood_Areas_SolokSelatan.geojson');
         loadGeoJSON(mediumRiskLayer, 'Medium_risk_flood_Areas_SolokSelatan.geojson');
         loadGeoJSON(highRiskLayer, 'high_risk_flood_Areas_SolokSelatan.geojson');
 
-        // Muat layer longsor dari file .gz di GitHub
-        loadGeoJSONFromGz(longsorLayer, 'https://raw.githubusercontent.com/ridhoarazzak/Resiko_banji_longsor/main/data/data_simplified.geojson.gz');
+        // Ganti memuat layer longsor dengan file geojson biasa
+        loadGeoJSON(longsorLayer, 'https://raw.githubusercontent.com/ridhoarazzak/Resiko_banji_longsor/main/data/geojson_files.geojson');
 
         // API Cuaca
         const apiKey = '3a3e47a47e051b4cd78e04d4a50f0c8c';
