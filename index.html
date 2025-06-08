@@ -15,6 +15,7 @@
     <h2>Peta Risiko Banjir - Kabupaten Solok Selatan</h2>
     <div id="map"></div>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/pako/dist/pako.min.js"></script> <!-- Pako untuk dekompresi -->
     <script>
         var map = L.map('map').setView([-1.5631, 101.3431], 11); // Koordinat Padang Aro, Solok Selatan
 
@@ -32,10 +33,15 @@
             style: { color: "red", weight: 1.5, fillOpacity: 0.4 }
         });
 
+        var longsorLayer = L.geoJSON(null, {
+            style: { color: "blue", weight: 2, fillOpacity: 0.4 }
+        });
+
         var overlays = {
             "Risiko Rendah": lowRiskLayer,
             "Risiko Sedang": mediumRiskLayer,
-            "Risiko Tinggi": highRiskLayer
+            "Risiko Tinggi": highRiskLayer,
+            "Longsor": longsorLayer // Menambahkan layer Budaya
         };
 
         L.control.layers(null, overlays).addTo(map);
@@ -50,9 +56,30 @@
                 .catch(err => console.error("Gagal memuat " + url, err));
         }
 
+        function loadGeoJSONFromGz(layer, url) {
+            fetch(url)
+                .then(res => res.arrayBuffer()) // Mengambil sebagai buffer untuk dekompresi
+                .then(buffer => {
+                    // Decompress file .gz
+                    var decompressed = pako.ungzip(new Uint8Array(buffer), { to: 'string' });
+
+                    // Parse GeoJSON dari string yang didecompress
+                    var geojson = JSON.parse(decompressed);
+
+                    // Menambahkan data ke layer
+                    layer.addData(geojson);
+                    map.fitBounds(layer.getBounds());
+                })
+                .catch(err => console.error("Gagal memuat file gz " + url, err));
+        }
+
+        // Memuat data dari file GeoJSON biasa
         loadGeoJSON(lowRiskLayer, 'Low_risk_flood_Areas_SolokSelatan.geojson');
         loadGeoJSON(mediumRiskLayer, 'Medium_risk_flood_Areas_SolokSelatan.geojson');
         loadGeoJSON(highRiskLayer, 'high_risk_flood_Areas_SolokSelatan.geojson');
+
+        // Memuat data budaya dari file GeoJSON.gz
+        loadGeoJSONFromGz(longsorLayer, 'https://raw.githubusercontent.com/ridhoarazzak/Resiko_banji_longsor/main/data/data_simplified.geojson.gz');
 
         // API Key OpenWeather
         const apiKey = '3a3e47a47e051b4cd78e04d4a50f0c8c'; // Ganti dengan API Key kamu
