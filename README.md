@@ -20,7 +20,7 @@ Memberikan informasi risiko bencana secara terbuka kepada masyarakat, aparat des
 Membantu perencanaan evakuasi, pemetaan jalur aman, dan edukasi mitigasi bencana.
 
 🚀 Cara Akses
-Buka: https://resiko-banji.vercel.app
+Buka: https://resiko-banji longsor.vercel.app/
 Aktifkan layer sesuai tingkat risiko (rendah, sedang, tinggi)
 Gunakan sebagai referensi kawasan rawan
 
