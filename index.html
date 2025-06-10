@@ -32,35 +32,58 @@
         var highRiskLayer = L.geoJSON(null, {
             style: { color: "red", weight: 1.5, fillOpacity: 0.4 }
         });
-        var longsorLayer = L.geoJSON(null, {
+
+        var longsorRendahLayer = L.geoJSON(null, {
+            style: { color: "lightblue", weight: 2, fillOpacity: 0.4 }
+        });
+        var longsorSedangLayer = L.geoJSON(null, {
             style: { color: "blue", weight: 2, fillOpacity: 0.4 }
+        });
+        var longsorTinggiLayer = L.geoJSON(null, {
+            style: { color: "darkblue", weight: 2, fillOpacity: 0.4 }
         });
 
         var overlays = {
             "Risiko Rendah": lowRiskLayer,
             "Risiko Sedang": mediumRiskLayer,
             "Risiko Tinggi": highRiskLayer,
-            "Longsor": longsorLayer
+            "Longsor Rendah": longsorRendahLayer,
+            "Longsor Sedang": longsorSedangLayer,
+            "Longsor Tinggi": longsorTinggiLayer
         };
         L.control.layers(null, overlays).addTo(map);
 
         function loadGeoJSON(layer, url) {
             fetch(url)
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error("HTTP error " + res.status);
+                    return res.json();
+                })
                 .then(data => {
                     layer.addData(data);
-                    map.fitBounds(layer.getBounds());
                 })
                 .catch(err => console.error("Gagal memuat " + url, err));
         }
 
-        // Muat peta risiko
-        loadGeoJSON(lowRiskLayer, 'Low_risk_flood_Areas_SolokSelatan.geojson');
-        loadGeoJSON(mediumRiskLayer, 'Medium_risk_flood_Areas_SolokSelatan.geojson');
-        loadGeoJSON(highRiskLayer, 'high_risk_flood_Areas_SolokSelatan.geojson');
+        // Muat dan tampilkan peta risiko banjir langsung dari raw GitHub
+        loadGeoJSON(lowRiskLayer, 'https://raw.githubusercontent.com/ridhoarazzak/Resiko_banji_longsor/main/Low_risk_flood_Areas_SolokSelatan.geojson');
+        lowRiskLayer.addTo(map);
 
-        // Memuat layer longsor dari URL baru
-        loadGeoJSON(longsorLayer, 'https://github.com/ridhoarazzak/Resiko_banji_longsor/tree/main/geojson_files');
+        loadGeoJSON(mediumRiskLayer, 'https://raw.githubusercontent.com/ridhoarazzak/Resiko_banji_longsor/main/Medium_risk_flood_Areas_SolokSelatan.geojson');
+        mediumRiskLayer.addTo(map);
+
+        loadGeoJSON(highRiskLayer, 'https://raw.githubusercontent.com/ridhoarazzak/Resiko_banji_longsor/main/high_risk_flood_Areas_SolokSelatan.geojson');
+        highRiskLayer.addTo(map);
+
+        // Muat dan tampilkan peta risiko longsor langsung (raw GitHub URL)
+        loadGeoJSON(longsorRendahLayer, 'https://raw.githubusercontent.com/ridhoarazzak/Resiko_banji_longsor/main/longsor_rendah.geojson');
+        longsorRendahLayer.addTo(map);
+
+        loadGeoJSON(longsorSedangLayer, 'https://raw.githubusercontent.com/ridhoarazzak/Resiko_banji_longsor/main/longsor_sedang.geojson');
+        longsorSedangLayer.addTo(map);
+
+        loadGeoJSON(longsorTinggiLayer, 'https://raw.githubusercontent.com/ridhoarazzak/Resiko_banji_longsor/main/longsor_tinggi.geojson');
+        longsorTinggiLayer.addTo(map);
 
         // API Cuaca
         const apiKey = '3a3e47a47e051b4cd78e04d4a50f0c8c';
