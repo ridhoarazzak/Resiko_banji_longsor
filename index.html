@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Peta Risiko Banjir & Longsor- Solok Selatan</title>
+    <title>Peta Risiko Banjir & Longsor - Solok Selatan</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
@@ -43,13 +43,18 @@
             style: { color: "darkblue", weight: 2, fillOpacity: 0.4 }
         });
 
+        var estimasiKemungkinanLayer = L.geoJSON(null, {
+            style: { color: "purple", weight: 1.5, fillOpacity: 0.4 }
+        });
+
         var overlays = {
             "Risiko Rendah": lowRiskLayer,
             "Risiko Sedang": mediumRiskLayer,
             "Risiko Tinggi": highRiskLayer,
             "Longsor Rendah": longsorRendahLayer,
             "Longsor Sedang": longsorSedangLayer,
-            "Longsor Tinggi": longsorTinggiLayer
+            "Longsor Tinggi": longsorTinggiLayer,
+            "Estimasi Kemungkinan": estimasiKemungkinanLayer // Menambahkan layer estimasi kemungkinan
         };
         L.control.layers(null, overlays).addTo(map);
 
@@ -84,6 +89,10 @@
 
         loadGeoJSON(longsorTinggiLayer, 'https://raw.githubusercontent.com/ridhoarazzak/Resiko_banji_longsor/main/longsor_tinggi.geojson');
         longsorTinggiLayer.addTo(map);
+
+        // Muat dan tampilkan peta estimasi kemungkinan (raw GitHub URL yang benar)
+        loadGeoJSON(estimasiKemungkinanLayer, 'https://raw.githubusercontent.com/ridhoarazzak/Resiko_banjir_longsor/main/Prediksi_Risiko_Banjir_Longosor1.geojson');
+        estimasiKemungkinanLayer.addTo(map);
 
         // API Cuaca
         const apiKey = '3a3e47a47e051b4cd78e04d4a50f0c8c';
